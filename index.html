@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Помощник по учебным планам</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .upload-section {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .file-upload {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            background: #007bff;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background: #0056b3;
+        }
+
+        .upload-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: #1e7e34;
+        }
+
+        .upload-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .file-info {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.assistant {
+            text-align: left;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.assistant .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sources {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #6c757d;
+            padding-left: 18px;
+        }
+
+        .sources strong {
+            color: #495057;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .message-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: transform 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .send-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .status {
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border-bottom: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-bottom: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-bottom: 1px solid #bee5eb;
+        }
+
+        .scrollbar-hide {
+            scrollbar-width: thin;
+            scrollbar-color: #bbb transparent;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar-thumb {
+            background: #bbb;
+            border-radius: 3px;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Помощник по учебным планам</h1>
+            <p>Задавайте вопросы о курсах, модулях и образовательных траекториях</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="file-upload">
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" multiple accept=".pdf">
+                    <label for="fileInput" class="file-input-label">📄 Выбрать PDF файлы</label>
+                </div>
+                <button id="uploadBtn" class="upload-btn" disabled>Загрузить документы</button>
+                <span id="fileInfo" class="file-info">Файлы не выбраны</span>
+            </div>
+        </div>
+
+        <div id="statusBar" class="status" style="display: none;"></div>
+
+        <div class="chat-container">
+            <div id="messagesContainer" class="messages-container scrollbar-hide">
+                <div class="message assistant">
+                    <div class="message-bubble">
+                        Привет! Я ваш помощник по учебным планам. Загрузите PDF документы с учебными планами, и я помогу вам найти нужную информацию о курсах, требованиях и образовательных программах.
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loadingIndicator">
+                Помощник печатает...
+            </div>
+
+            <div class="input-container">
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="messageInput" 
+                        class="message-input" 
+                        placeholder="Спросите о курсах, зачетных единицах, семестрах или любых деталях учебного плана..."
+                        maxlength="500"
+                    >
+                    <button id="sendBtn" class="send-btn">Отправить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ChatApp {
+            constructor() {
+                this.apiBase = 'http://localhost:8000';
+                this.initializeElements();
+                this.attachEventListeners();
+                this.checkServerHealth();
+            }
+
+            initializeElements() {
+                this.fileInput = document.getElementById('fileInput');
+                this.uploadBtn = document.getElementById('uploadBtn');
+                this.fileInfo = document.getElementById('fileInfo');
+                this.statusBar = document.getElementById('statusBar');
+                this.messagesContainer = document.getElementById('messagesContainer');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendBtn = document.getElementById('sendBtn');
+                this.loadingIndicator = document.getElementById('loadingIndicator');
+            }
+
+            attachEventListeners() {
+                this.fileInput.addEventListener('change', () => this.handleFileSelection());
+                this.uploadBtn.addEventListener('click', () => this.uploadDocuments());
+                this.sendBtn.addEventListener('click', () => this.sendMessage());
+                this.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+            }
+
+            async checkServerHealth() {
+                try {
+                    const response = await fetch(`${this.apiBase}/health`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'healthy') {
+                        let statusMessage = '';
+                        let statusType = 'info';
+                        
+                        if (!data.mistral_configured) {
+                            statusMessage = '⚠️ ИИ-модели не настроены. Пожалуйста, настройте переменные окружения.';
+                            statusType = 'error';
+                        } else if (data.vectorstore_initialized) {
+                            statusMessage = `✅ Система готова! Документы загружены и готовы для ответов на вопросы.`;
+                            statusType = 'success';
+                        } else {
+                            statusMessage = `📁 Система готова! Загрузите PDF документы, чтобы начать.`;
+                            statusType = 'info';
+                        }
+                        
+                        this.showStatus(statusMessage, statusType);
+                    }
+                } catch (error) {
+                    this.showStatus('❌ Не удается подключиться к серверу. Убедитесь, что API запущено на порту 8000.', 'error');
+                }
+            }
+
+            handleFileSelection() {
+                const files = this.fileInput.files;
+                if (files.length > 0) {
+                    this.fileInfo.textContent = `Выбрано файлов: ${files.length}`;
+                    this.uploadBtn.disabled = false;
+                } else {
+                    this.fileInfo.textContent = 'Файлы не выбраны';
+                    this.uploadBtn.disabled = true;
+                }
+            }
+
+            async uploadDocuments() {
+                const files = this.fileInput.files;
+                if (files.length === 0) return;
+
+                this.uploadBtn.disabled = true;
+                this.uploadBtn.textContent = 'Загружается...';
+
+                try {
+                    const formData = new FormData();
+                    for (let file of files) {
+                        formData.append('files', file);
+                    }
+
+                    const response = await fetch(`${this.apiBase}/upload-documents`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.showStatus(`✅ ${data.message}. Обработано фрагментов документов: ${data.documents_processed}.`, 'success');
+                        this.fileInput.value = '';
+                        this.fileInfo.textContent = 'Загрузка завершена!';
+                    } else {
+                        this.showStatus(`❌ Ошибка загрузки: ${data.detail}`, 'error');
+                    }
+                } catch (error) {
+                    this.showStatus(`❌ Ошибка загрузки: ${error.message}`, 'error');
+                } finally {
+                    this.uploadBtn.disabled = false;
+                    this.uploadBtn.textContent = 'Загрузить документы';
+                }
+            }
+
+            async sendMessage() {
+                const message = this.messageInput.value.trim();
+                if (!message) return;
+
+                this.sendBtn.disabled = true;
+                this.messageInput.disabled = true;
+                this.messageInput.value = '';
+
+                // Add user message
+                this.addMessage(message, 'user');
+                this.showLoading(true);
+
+                try {
+                    const response = await fetch(`${this.apiBase}/chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.addMessage(data.response, 'assistant', data.sources);
+                    } else {
+                        this.addMessage(`Извините, произошла ошибка: ${data.detail}`, 'assistant');
+                    }
+                } catch (error) {
+                    this.addMessage(`Извините, не удалось обработать ваше сообщение: ${error.message}`, 'assistant');
+                } finally {
+                    this.showLoading(false);
+                    this.sendBtn.disabled = false;
+                    this.messageInput.disabled = false;
+                    this.messageInput.focus();
+                }
+            }
+
+            addMessage(content, sender, sources = null) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.className = 'message-bubble';
+                bubbleDiv.textContent = content;
+
+                messageDiv.appendChild(bubbleDiv);
+
+                if (sources && sources.length > 0) {
+                    const sourcesDiv = document.createElement('div');
+                    sourcesDiv.className = 'sources';
+                    sourcesDiv.innerHTML = `<strong>Источники:</strong> ${sources.join(', ')}`;
+                    messageDiv.appendChild(sourcesDiv);
+                }
+
+                this.messagesContainer.appendChild(messageDiv);
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            }
+
+            showLoading(show) {
+                this.loadingIndicator.style.display = show ? 'block' : 'none';
+                if (show) {
+                    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                }
+            }
+
+            showStatus(message, type) {
+                this.statusBar.textContent = message;
+                this.statusBar.className = `status ${type}`;
+                this.statusBar.style.display = 'block';
+
+                setTimeout(() => {
+                    this.statusBar.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Initialize the chat app when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new ChatApp();
+        });
+    </script>
+</body>
+</html>

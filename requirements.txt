@@ -1,0 +1,25 @@
+# FastAPI and web framework dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# HTTP requests for MistralAI API
+requests==2.31.0
+
+# LangChain core dependencies
+langchain==0.0.340
+
+# Vector store dependencies
+faiss-cpu==1.7.4
+# For GPU support, use: faiss-gpu==1.7.4
+
+# PDF processing
+pypdf==3.17.1
+
+# Text processing and utilities
+numpy==1.24.3
+python-dotenv==1.0.0
+
+# Optional: For advanced text splitting and processing
+beautifulsoup4==4.12.2
+lxml==4.9.3
